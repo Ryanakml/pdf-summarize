@@ -148,3 +148,13 @@
            px-6 py-3 rounded-full font-medium transition-all shadow-md;
   }
 }
+
+@keyframes gradient-move {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient-move {
+  animation: gradient-move 4s ease-in-out infinite;
+}
+

@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link";
 import NavLink from "@/components/common/nav-link";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
  
 export default function Header() {
   const isLoggedIn = false;
@@ -17,23 +18,29 @@ export default function Header() {
 
       <div className="flex lg:justify-center gap-4 lg:gap-12 lg:items-center">
         <NavLink href="/#pricing">Pricing</NavLink>
-        {isLoggedIn && <NavLink href="/#dashboard">Your Summary</NavLink>}
+        <SignedIn>
+          <NavLink href="/#dashboard">Your Summary</NavLink>
+        </SignedIn>
       </div>
 
       <div className="flex lg:flex-1 lg:justify-end">
-        {isLoggedIn ? (
+        <SignedIn>
           <div className="flex gap-2 items-center">
-            <NavLink href="/#upload">Upload PDF</NavLink>
+            <NavLink href="/upload">Upload PDF</NavLink>
             <div>Pro</div>
-            <Button>User</Button>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
-        ) : (
-          <div className="flex gap-4 items-center">
-            <Link href="/#sign-in" className="text-sm text-gray-900 hover:text-purple-500">
+        </SignedIn>
+
+        <SignedOut>
+          <SignInButton mode="modal">
+            <span className="cursor-pointer text-sm text-gray-900 hover:text-purple-500">
               Sign In
-            </Link>
-          </div>
-        )}
+            </span>
+          </SignInButton>
+        </SignedOut>
       </div>
     </nav>
   );

@@ -1,41 +1,46 @@
-import { Sparkles, ArrowRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function HeroSection() {
   return (
-    <section className="min-h-[90vh] flex items-center justify-center px-6 sm:px-20">
-      <div className="max-w-3xl text-center space-y-8">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-400 bg-purple-50/40 text-purple-600 text-sm font-medium mx-auto">
-          <Sparkles className="h-4 w-4" />
-          <span>Powered by AI</span>
-        </div>
-
-        {/* Title */}
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight">
-          xxx xxx{" "}
-          <span className="relative inline-block">
-            <span className="relative z-10 text-purple-700">xxx</span>
-            <span className="absolute inset-x-0 bottom-1 h-3 bg-purple-100 rounded-md -z-10"></span>
-          </span>{" "}
-          xxx
-        </h1>
-
-        {/* Subtitle */}
-        <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-          xxxx
-        </p>
-
-        {/* Button */}
-        <div>
-          <Button
-            className="bg-gradient-to-r from-black via-purple-500 to-purple-700 hover:from-purple-700 hover:to-purple-600 text-white px-8 py-5 rounded-full text-base font-semibold shadow-lg transition-all duration-300"
-          >
-            Try Summarizer →
-          </Button>
+    <section className="relative mx-auto flex flex-col items-center justify-center py-16 sm:py-20 lg:pb-28 transition-all animate-in lg:px-12 max-w-7xl">
+      {/* Badge */}
+      <div className="relative p-[1px] overflow-hidden rounded-full bg-gradient-to-r from-purple-300 via-purple-500 to-purple-700 [background-size:200%_200%] animate-gradient-move">
+        <div className="flex items-center gap-2 rounded-full bg-white/80 px-6 py-2">
+          <Sparkles className="w-4 h-4 text-black" />
+          <span className="text-sm font-medium text-black">Powered by AI</span>
         </div>
       </div>
+
+      {/* Title */}
+      <h1 className="font-bold py-6 text-center text-4xl sm:text-5xl lg:text-6xl text-slate-900">
+        Transform PDFs into{" "}
+        <span className="relative inline-block">
+          <span className="relative z-10 px-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-fuchsia-500">concise</span>
+          <span
+            className="absolute inset-0 bg-purple-200/50 -rotate-2 rounded-lg transform -skew-y-1"
+            aria-hidden="true"
+          ></span>
+        </span>{" "}
+        summaries
+      </h1>
+
+      {/* Subtitle */}
+      <h2 className="text-lg sm:text-xl lg:text-2xl text-center px-4 lg:px-0 lg:max-w-4xl text-gray-600">
+        Get a beautiful summary reel of your document in seconds.
+      </h2>
+
+      {/* Button */}
+      <Button
+        variant="link"
+        className="text-white mt-6 text-base sm:text-lg lg:text-xl rounded-full px-8 sm:px-10 lg:px-12 py-6 sm:py-7 lg:py-8 lg:mt-16 bg-gradient-to-r from-purple-700 to-fuchsia-500 hover:from-fuchsia-500 hover:to-purple-700 font-bold shadow-lg transition-all duration-300"
+      >
+        <Link href="/#pricing" className="flex gap-2 items-center">
+          <span>Try Sommaire</span>
+          <ArrowRight className="animate-pulse" />
+        </Link>
+      </Button>
     </section>
-  )
+  );
 }

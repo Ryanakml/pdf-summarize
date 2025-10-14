@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
-import { Source_Sans_3 as FontSans} from "next/font/google";
+import { Source_Sans_3 as FontSans } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/common/header";
-import Footer from "@/components/common/footer";
-
+import { ClerkProvider } from "@clerk/nextjs";
+import ClientLayout from "./client-layout"; // ⬅️ kita panggil file baru
 
 const fontSans = FontSans({
   variable: "--font-source-sans",
@@ -16,16 +15,26 @@ export const metadata: Metadata = {
   description: "Summarize your PDF documents with the power of AI.",
 };
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body
-        className={`${fontSans.variable} font-sans antialiased`}
-      >
-        <Header />
-        <main>{children}</main>
-        <Footer />
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#a855f7",
+          fontFamily: "var(--font-source-sans)",
+        },
+        elements: {
+          card: "shadow-2xl backdrop-blur-xl border border-purple-100 rounded-3xl",
+          formButtonPrimary:
+            "bg-gradient-to-r from-purple-600 to-fuchsia-500 hover:from-fuchsia-500 hover:to-purple-700 text-white font-semibold",
+        },
+      }}
+    >
+      <html lang="en">
+        <body className={`${fontSans.variable} font-sans antialiased`}>
+          <ClientLayout>{children}</ClientLayout>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
