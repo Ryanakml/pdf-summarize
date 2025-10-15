@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Source_Sans_3 as FontSans } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import ClientLayout from "./client-layout"; // ⬅️ kita panggil file baru
+import ClientLayout from "./client-layout"; 
+import { Toaster, toast } from "sonner";
 
 const fontSans = FontSans({
   variable: "--font-source-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <html lang="en">
         <body className={`${fontSans.variable} font-sans antialiased`}>
+          <Toaster position="top-right" richColors />
           <ClientLayout>{children}</ClientLayout>
         </body>
       </html>
