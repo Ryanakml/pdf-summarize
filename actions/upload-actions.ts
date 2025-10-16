@@ -1,53 +1,41 @@
-"use service";
+"use server";
 
 import { fetchAndExtractPdfText } from "@/lib/langchain";
 
 export async function generatedPDFSummary(
-    uploadResponse: [{
-        serverData: {
-            userId: string;
-            file: {
-                url: string;
-                name: string;
-            };
-        };
-    }
-]
+  uploadResponse: Array<{
+    url: string; // URL final dari UploadThing (utfs.io)
+    name: string;
+    key: string;
+  }>
 ) {
-    if (!uploadResponse) {
-        return {
-            success: false,
-            message: "No upload response provided",
-            data: null,
-        };
-    }
+  if (!uploadResponse || !uploadResponse[0]?.url) {
+    return {
+      success: false,
+      message: "No valid PDF URL found in upload response",
+      data: null,
+    };
+  }
 
-    const {
-        serverData: {
-            userId,
-            file: { 
-                url: pdfUrl, 
-                name: fileName,
-             },
-            },
-    } = uploadResponse[0];
+  const pdfUrl = uploadResponse[0].url;
+  const fileName = uploadResponse[0].name;
 
-    if (!pdfUrl) {
-        return {
-            success: false,
-            message: "No PDF URL found in the upload response",
-            data: null,
-        };
-    }
+  try {
+    const pdfText = await fetchAndExtractPdfText(pdfUrl);
+    console.log({ fileName, pdfText: pdfText.slice(0, 300) + "..." });
 
-    try {
-        const pdfText = await fetchAndExtractPdfText(pdfUrl);
-        console.log({ pdfText });
-    } catch (error) {
-        return {
-            success: false,
-            message: "Error generating PDF summary: " + (error instanceof Error ? error.message : "Unknown error"),
-            data: null,
-        };
-    }
+    return {
+      success: true,
+      message: "PDF parsed successfully",
+      data: pdfText,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message:
+        "Error generating PDF summary: " +
+        (error instanceof Error ? error.message : "Unknown error"),
+      data: null,
+    };
+  }
 }
