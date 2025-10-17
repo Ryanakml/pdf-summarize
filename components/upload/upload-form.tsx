@@ -5,6 +5,7 @@ import UploadFormInput from "@/components/upload/upload-form-input";
 import { z } from "zod";
 import { toast } from "sonner";
 import { generatedPDFSummary } from "@/actions/upload-actions";
+import { storePdfSummaryAction } from "@/actions/upload-actions";
 
 const schema = z.object({
   file: z
@@ -56,10 +57,19 @@ export default function UploadForm() {
     const summary = await generatedPDFSummary(resp);
     console.log({ summary });
 
+    if (summary?.success && summary?.data?.summary) {
+      await storePdfSummaryAction({
+        fileurl: resp[0].url,
+        summary: summary.data.summary,
+        title: resp[0].name.split(".")[0],
+        filename: resp[0].name,
+      });
+    }
+
     // summarize the pdf using ai
     // save result to database
     // return the id into user's dashboard
-  }
+
 
   return (
     <div>
