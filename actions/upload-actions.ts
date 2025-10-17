@@ -1,10 +1,11 @@
 "use server";
 
 import { fetchAndExtractPdfText } from "@/lib/langchain";
+import { generateSummaryFromOllamaServer } from "@/lib/openai";
 
 export async function generatedPDFSummary(
   uploadResponse: Array<{
-    url: string; // URL final dari UploadThing (utfs.io)
+    url: string;
     name: string;
     key: string;
   }>
@@ -24,12 +25,29 @@ export async function generatedPDFSummary(
     const pdfText = await fetchAndExtractPdfText(pdfUrl);
     console.log({ fileName, pdfText: pdfText.slice(0, 300) + "..." });
 
+    let summary;
+    try {
+      summary = await generateSummaryFromOllamaServer(pdfText);
+      console.log({ summary });
+    } catch (error) {
+      console.error("Error generating summary from Ollama:", error);
+    }
+
+    if (!summary) {
+      return {
+        success: false,
+        message: "Error generating PDF summary from Ollama",
+        data: null,
+      };
+    }
+
     return {
       success: true,
-      message: "PDF parsed successfully",
-      data: pdfText,
+      message: "PDF summary generated successfully",
+      data: summary,
     };
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Error in generatedPDFSummary:", error);
     return {
       success: false,
       message:
