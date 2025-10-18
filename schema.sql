@@ -21,6 +21,7 @@ CREATE TABLE pdf_summaries (
     status VARCHAR(50) DEFAULT 'completed',
     title TEXT,
     file_name TEXT,
+    summary TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
