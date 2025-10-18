@@ -2,9 +2,10 @@
 
 import { fetchAndExtractPdfText } from "@/lib/langchain";
 import { generateSummaryFromOllamaServer } from "@/lib/llama";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { getDBConnection } from "@/lib/db";
 import { formatFileNameAsTitle } from "@/utils/format-utils";
+import { ensurePdfSummariesSchema } from "@/lib/db_migrations";
 
 interface PdfSummaryType {
   fileurl: string;
@@ -35,7 +36,7 @@ export async function generatedPDFSummary(
     const pdfText = await fetchAndExtractPdfText(pdfUrl);
     console.log({ fileName, pdfText: pdfText.slice(0, 300) + "..." });
 
-    let summary;
+    let summary: string | undefined;
     try {
       summary = await generateSummaryFromOllamaServer(pdfText);
       console.log({ summary });
@@ -51,10 +52,17 @@ export async function generatedPDFSummary(
       };
     }
 
+    const title = formatFileNameAsTitle(fileName);
+
     return {
       success: true,
       message: "PDF summary generated successfully",
-      data: summary,
+      data: {
+        summary,
+        fileurl: pdfUrl,
+        title,
+        filename: fileName,
+      },
     };
   } catch (error: any) {
     console.error("Error in generatedPDFSummary:", error);
@@ -68,39 +76,77 @@ export async function generatedPDFSummary(
   }
 }
 
+async function ensureUserAndGetId() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("User not authenticated");
+
+  const user = await currentUser();
+  const email = user?.emailAddresses?.[0]?.emailAddress;
+  const fullName = user?.fullName ?? null;
+
+  if (!email) throw new Error("User email not found");
+
+  const sql = await getDBConnection();
+
+  // Try to find existing user by email
+  const existingRes = await sql`
+    SELECT id FROM users WHERE email = ${email} LIMIT 1
+  `;
+  const existing = existingRes as Array<{ id: string }>;
+  if (existing.length > 0) {
+    return existing[0].id;
+  }
+
+  // Create if not exists. Store Clerk userId in customer_id for traceability.
+  const createdRes = await sql`
+    INSERT INTO users (email, full_name, customer_id, status)
+    VALUES (${email}, ${fullName}, ${userId}, 'active')
+    RETURNING id
+  `;
+  const created = createdRes as Array<{ id: string }>;
+  return created[0].id;
+}
+
 async function savePdfSummary({
-  userId, 
+  userUuid,
   fileurl,
   summary,
   title,
   filename,
-} : {
-  userId: string, 
-  fileurl: string,
-  summary: string,
-  title: string,
-  filename: string,
+}: {
+  userUuid: string;
+  fileurl: string;
+  summary: string;
+  title: string;
+  filename: string;
 }) {
-  // sql inserting pdf summary
   try {
     const sql = await getDBConnection();
-    await sql`
+    // Ensure schema matches our expectations
+    await ensurePdfSummariesSchema();
+    const insertedRes = await sql`
       INSERT INTO pdf_summaries (
-      user_id, 
-      file_url, 
-      summary, 
-      title, 
-      filename
+        user_id,
+        original_file_url,
+        status,
+        title,
+        file_name,
+        summary
       ) VALUES (
-       ${userId}, 
-       ${fileurl}, 
-       ${summary}, 
-       ${title}, 
-       ${filename}
-       )`
+        ${userUuid},
+        ${fileurl},
+        'completed',
+        ${title},
+        ${filename},
+        ${summary}
+      )
+      RETURNING id
+    `;
+    const inserted = insertedRes as Array<{ id: string }>;
+    return inserted[0];
   } catch (error) {
     console.error("Error in savePdfSummary:", error);
-    throw error
+    throw error;
   }
 }
 
@@ -115,17 +161,10 @@ export async function storePdfSummaryAction({
 
   let savedSummary: any;
   try{
-    const { userId } = await auth()
-     if (!userId) {
-      return {
-        success: false,
-        message: "User not found",
-        data: null,
-      }
-    }
+    const userUuid = await ensureUserAndGetId();
 
     savedSummary = await savePdfSummary({
-      userId, 
+      userUuid,
       fileurl,
       summary,
       title,
@@ -140,14 +179,14 @@ export async function storePdfSummaryAction({
       }
     }
 
-    const formattedFileName = formatFileNameAsTitle(filename);
-
     return {
       success: true,
       message: "PDF summary saved successfully",
-      data: 
-      title: fileName
-      savedSummary, 
+      data: {
+        id: savedSummary.id,
+        title,
+        fileurl,
+      }, 
 
     }
   } catch (error) {
@@ -155,7 +194,7 @@ export async function storePdfSummaryAction({
       success: false,
       message:
       error instanceof Error ? 
-      error.message : "Unknown Saving PDF Summary",
+      error.message : "Error Saving PDF Summary",
       data: null,
     }
   }
