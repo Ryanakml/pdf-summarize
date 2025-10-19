@@ -3,6 +3,7 @@ import DeleteButton from "./delete-button";
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { markdownToInlineHtml } from "@/lib/markdown";
 
 const SummaryHeader = ({
   fileUrl,
@@ -20,7 +21,7 @@ const SummaryHeader = ({
         <h3 className="text-base xl:text-lg font-semibold text-gray-900 truncate">
           {title || "Untitled"}
         </h3>
-        <p className="text-sm text-gray-500">{createdAt}</p>
+        <p className="text-sm text-gray-500">{new Date(createdAt).toLocaleDateString()}</p>
       </div>
     </div>
   );
@@ -50,30 +51,34 @@ export function SummaryCard({ summary }: { summary: any }) {
     <Card className="relative h-full hover:shadow-lg transition-shadow duration-200 group border border-gray-200">
       {/* Delete Button */}
       <div className="absolute top-3 right-3">
-        <DeleteButton />
+        <DeleteButton summaryId={summary.id} />
       </div>
 
-      {/* Summary Content */}
-      <Link href={`/dashboard/summary/${summary.id}`} className="block p-6 sm:p-8">
+      {/* Summary Content (card itself is not clickable) */}
+      <div className="p-6 sm:p-8">
         <div className="flex flex-col gap-3 sm:gap-4">
           <SummaryHeader
-            fileUrl={summary.file_url}
+            fileUrl={summary.original_file_url}
             title={summary.title}
             createdAt={summary.created_at}
           />
 
-          <p className="text-sm xl:text-base text-gray-600 line-clamp-3">
-            {summary.summary_text || "No summary available."}
-          </p>
+          <p className="text-sm xl:text-base text-gray-600 line-clamp-3" dangerouslySetInnerHTML={{
+            __html: markdownToInlineHtml(summary.summary || "No summary available.")
+          }} />
 
-          <div className="flex items-center justify-between mt-3">
-            <StatusBadge status={summary.status} />
-            <span className="text-xs text-purple-500 font-medium">
-              View Details →
-            </span>
-          </div>
         </div>
-      </Link>
+
+        <div className="flex items-center justify-between mt-4">
+          <StatusBadge status={summary.status} />
+          <Link
+            href={`/dashboard/summary/${summary.id}`}
+            className="text-xs text-purple-600 font-medium hover:underline underline-offset-4"
+          >
+            View Details →
+          </Link>
+        </div>
+      </div>
     </Card>
   );
 }
