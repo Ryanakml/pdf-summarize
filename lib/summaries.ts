@@ -7,9 +7,7 @@ export async function getSummaries(clerkUserId: string) {
     const sql = await getDBConnection();
 
     // Find the internal user UUID for this Clerk user
-    const userRows = await sql`
-        SELECT id FROM users WHERE customer_id = ${clerkUserId} LIMIT 1
-    `;
+    const userRows = await sql` SELECT id FROM users WHERE customer_id = ${clerkUserId} LIMIT 1`;
     if ((userRows as Array<{ id: string }>).length === 0) {
         return [];
     }
