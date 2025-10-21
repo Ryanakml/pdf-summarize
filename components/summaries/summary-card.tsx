@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { markdownToInlineHtml } from "@/lib/markdown";
+import { formatDistanceToNow } from "date-fns";
 
 const SummaryHeader = ({
   fileUrl,
@@ -21,7 +22,9 @@ const SummaryHeader = ({
         <h3 className="text-base xl:text-lg font-semibold text-gray-900 truncate">
           {title || "Untitled"}
         </h3>
-        <p className="text-sm text-gray-500">{new Date(createdAt).toLocaleDateString()}</p>
+        <p className="text-sm text-gray-500">
+          {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+        </p>
       </div>
     </div>
   );
@@ -48,7 +51,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export function SummaryCard({ summary }: { summary: any }) {
   return (
-    <Card className="relative h-full hover:shadow-lg transition-shadow duration-200 group border border-gray-200">
+    <Card className="bg-gray-50 relative h-full hover:shadow-lg transition-shadow duration-200 group border border-gray-200">
       {/* Delete Button */}
       <div className="absolute top-3 right-3">
         <DeleteButton summaryId={summary.id} />
